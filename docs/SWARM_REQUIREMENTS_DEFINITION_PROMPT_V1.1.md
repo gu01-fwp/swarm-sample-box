@@ -1,3 +1,4 @@
+
 # 構造化された要件定義プロンプト
 
 以下のプロンプトをLLMに入力することで、ユーザーの要求に基づいたSwarmフレームワークの構造と必要なファイル一式を生成できます。
@@ -52,30 +53,34 @@
      - README.md
      - requirements.txt
      - main.py
-     - agents/
-       - __init__.py
-       - agent1.py
-       - agent2.py
-     - functions/
-       - __init__.py
-       - function1.py
-       - function2.py
      - configs/
+       - __init__.py
+       - agents/
+         - __init__.py
+         - triage_agent.py
+         - service_agent.py
+       - functions/
+         - __init__.py
+         - core_functions.py
+         - helper_functions.py
+       - tools.py
        - config.yaml
-     - ...
    ```
 
 3. **各ファイルの説明**:
    - **README.md**: プロジェクトの概要と使用方法を記載。
    - **requirements.txt**: 必要なパッケージのリスト。
    - **main.py**: エントリーポイントとなるスクリプト。
-   - **agents/**: エージェントの定義と実装。
-     - **agent1.py**: エージェント1のコードと詳細。
-     - **agent2.py**: エージェント2のコードと詳細。
-   - **functions/**: エージェントが使用する関数やツール。
-     - **function1.py**: 関数1の実装。
-     - **function2.py**: 関数2の実装。
-   - **configs/**: 設定ファイルや環境設定。
+   - **configs/**: 設定、エージェント、関数を含む中心的なディレクトリ。
+     - **agents/**: エージェントの定義と実装。
+       - **triage_agent.py**: 振り分けエージェントの実装。
+       - **service_agent.py**: サービス提供エージェントの実装。
+     - **functions/**: エージェントが使用する関数やツール。
+       - **core_functions.py**: 主要機能の実装。
+       - **helper_functions.py**: ヘルパー機能の実装。
+     - **tools.py**: 共通ツールの定義。
+     - **config.yaml**: 設定ファイル。
+
 4. **エージェントの詳細**:
    - 各エージェントの目的、指示、使用する関数を説明。
    - **コード例**を含める。
@@ -83,15 +88,15 @@
      例：
 
      ```python
-     # agents/agent1.py
+     # configs/agents/triage_agent.py
 
      from swarm import Agent
-     from functions.function1 import function1
+     from configs.functions.core_functions import process_request
 
-     agent1 = Agent(
-         name="エージェント1",
+     triage_agent = Agent(
+         name="振り分けエージェント",
          instructions="ここにエージェントの指示を記載",
-         functions=[function1]
+         functions=[process_request]
      )
      ```
 
@@ -102,56 +107,83 @@
      例：
 
      ```python
-     # functions/function1.py
+     # configs/functions/core_functions.py
 
-     def function1(param1, param2):
+     def process_request(request_type: str, data: dict) -> dict:
          """
-         関数の説明：
-         - param1: 説明
-         - param2: 説明
-         戻り値:
-         - 説明
+         リクエストを処理する関数
+         
+         Args:
+             request_type (str): リクエストの種類
+             data (dict): リクエストデータ
+         
+         Returns:
+             dict: 処理結果
          """
          # 関数の実装
-         result = param1 + param2  # 例として簡単な処理
+         result = {"status": "processed", "data": data}
          return result
      ```
 
-6. **セットアップと実行方法**:
-   - 必要な環境構築手順。
-   - 実行コマンドや動作確認の方法。
+6. **設定ファイルの例**:
+   ```yaml
+   # configs/config.yaml
+   
+   app:
+     name: "AIエージェントシステム"
+     version: "1.0.0"
+   
+   agents:
+     triage:
+       timeout: 30
+       max_retries: 3
+     service:
+       timeout: 60
+       max_retries: 2
+   ```
 
-     例：
+7. **メインファイルの例**:
+   ```python
+   # main.py
+   
+   from configs.agents.triage_agent import triage_agent
+   from configs import tools
+   
+   def main():
+       # システムの初期化と実行
+       context = tools.initialize_context()
+       triage_agent.run(context)
+   
+   if __name__ == "__main__":
+       main()
+   ```
 
-     ```bash
-     # 仮想環境の作成と有効化
-     python -m venv venv
-     source venv/bin/activate  # Windowsの場合は venv\Scripts\activate
+8. **セットアップと実行方法**:
+   ```bash
+   # 仮想環境の作成と有効化
+   python -m venv venv
+   source venv/bin/activate  # Windowsの場合は venv\Scripts\activate
 
-     # 必要なパッケージのインストール
-     pip install -r requirements.txt
+   # 必要なパッケージのインストール
+   pip install -r requirements.txt
 
-     # メインスクリプトの実行
-     python main.py
-     ```
-
-7. **その他必要な情報**:
-   - 注意点や拡張方法など。
-
----
+   # メインスクリプトの実行
+   python main.py
+   ```
 
 **【注意事項】**
 
-- コードや設定ファイルは適切なフォルダに配置し、Pythonのパッケージ構成に従ってください。
+- すべての設定関連コードは`configs`フォルダに集約し、モジュール性と保守性を高めてください。
+- `configs`フォルダ内の構造は論理的に整理し、依存関係を明確にしてください。
+- エージェント、関数、ツールのインポートパスは`configs`を基準に統一してください。
+- 必要に応じて適切なドキュメンテーションとコメントを追加してください。
+- すべてのコードは実行可能な形で提供し、依存関係を明確にしてください。
 - 説明は日本語で記載し、専門用語は適切に翻訳してください。
 - ユーザーの要件を正確に反映し、実用的なシステムとなるよう心がけてください。
-- 必要に応じてコメントやドキュメンテーションを追加し、可読性を高めてください。
-- **コード例を具体的に提供し、ユーザーがそのまま利用できるようにしてください。**
 
 ---
 
-以上の指示に従って、Swarmフレームワークを用いたシステムの設計と実装を行ってください。
-下記の例も適宜参考にして
+このプロンプトに従って、Swarmフレームワークを用いたシステムの設計と実装を行ってください。必要に応じて、提供されている例も参考にしてください。
 
 # 例 ) Project: airline
 
