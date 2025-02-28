@@ -120,6 +120,17 @@ def add_product(product_id, product_name, price):
     conn = get_connection()
     cursor = conn.cursor()
 
+    # 製品idが既に存在するかチェック
+    cursor.execute(
+        """
+        SELECT * FROM Products
+        WHERE product_id = ?
+    """,
+        (product_id,),
+    )
+    if cursor.fetchone():
+        return
+
     try:
         cursor.execute(
             """
