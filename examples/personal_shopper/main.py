@@ -85,6 +85,26 @@ def order_item(user_id, product_id):
     else:
         print(f"製品ID {product_id} が見つかりません。")
 
+def get_item_price(product_name):
+    """
+    商品名に基づいて商品の価格を提示する関数
+    入力引数のフォーマット: '{"product_name":"靴"}'
+    """
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT product_id, price FROM Products
+        WHERE product_name = ?
+    """,
+        (product_name,),
+    )
+    result = cursor.fetchone()
+    if result:
+        product_id, price = result
+        return price
+    else:
+        return "みつかりません"
 
 # データベースの初期化
 database.initialize_database()
@@ -120,7 +140,7 @@ sales_agent = Agent(
     ユーザーが通知を希望する場合は、通知方法を尋ねる必要があります。通知の場合、
     ユーザーIDと通知方法を1つのメッセージで尋ねてください。
     """,
-    functions=[order_item, notify_customer],
+    functions=[order_item, notify_customer, get_item_price],
 )
 
 triage_agent = Agent(
